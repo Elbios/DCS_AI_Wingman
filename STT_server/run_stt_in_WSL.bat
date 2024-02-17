@@ -10,7 +10,7 @@ set /p WhisperMode=Do you want to run Whisper STT in CPU mode or GPU(CUDA) mode?
 if /i "%WhisperMode%"=="cpu" (
     set WhisperArg=--build-arg WHISPER_MODE=cpu
     set WhisperArg2=-e WHISPER_MODE=cpu
-) else if /i "%VisionModel%"=="cuda" (
+) else if /i "%WhisperMode%"=="cuda" (
     set WhisperArg=--build-arg WHISPER_MODE=cuda
     set WhisperArg2=-e WHISPER_MODE=cuda
 ) else (
@@ -18,14 +18,32 @@ if /i "%WhisperMode%"=="cpu" (
     exit /b 1
 )
 
+:: Get the current directory in Windows format
+cd /d %~dp0
+:: Convert the current Windows directory to WSL path format and store it in a variable
+for /f "tokens=*" %%i in ('wsl wslpath -a "%CD%"') do set WSL_CURRENT_DIR=%%i
+:: Use the variable to copy the Dockerfile into the desired location in WSL
+wsl -d %WSLName% -e sudo mkdir -p /home/%LinuxUsername%/STT_server
+if NOT %ERRORLEVEL% == 0 (
+    echo STT SERVER: ERROR: Failed to create server directory.
+    pause
+    exit /b %ERRORLEVEL%
+)
+wsl -d %WSLName% -e sudo cp "%WSL_CURRENT_DIR%/Dockerfile" /home/%LinuxUsername%/STT_server
+if NOT %ERRORLEVEL% == 0 (
+    echo STT SERVER: ERROR: Failed to copy server Dockerfile.
+    pause
+    exit /b %ERRORLEVEL%
+)
+
 echo STT SERVER: Checking if Docker daemon is running...
 
 REM Check if dockerd is running
 wsl -d %WSLName% -- pgrep dockerd >nul 2>&1
 if NOT %ERRORLEVEL% == 0 (
-    echo STT SERVER: ERROR: Docker daemon not running. Try restarting WSL: 'wsl --shutdown' or reboot Windows. Exiting..
-    pause
-    exit /b %ERRORLEVEL%
+    echo STT SERVER: Docker daemon not running. Starting dockerd background process
+    wsl -d %WSLName% -e nohup sh -c "dockerd &"
+    timeout 5
 ) ELSE (
     echo STT SERVER: Docker daemon is running.
 )

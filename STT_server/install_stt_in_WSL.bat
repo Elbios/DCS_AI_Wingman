@@ -7,6 +7,20 @@ echo STT SERVER: Starting the installation
 set /p WSLName=Please enter the name of the WSL instance you wish to use: 
 set /p LinuxUsername=Please enter your username in the WSL instance:
 
+::echo STT SERVER: Enabling systemd in /etc/wsl.conf...
+:::: Check if /etc/wsl.conf exists
+::wsl -d %WSLName% -e test -f /etc/wsl.conf
+::if NOT %ERRORLEVEL% == 0 (
+::    :: Append the necessary lines to /etc/wsl.conf
+::    ::wsl -d %WSLName% -e sudo echo "[boot]" > /etc/wsl.conf >nul
+::    ::wsl -d %WSLName% -e sudo echo "systemd=true" > /etc/wsl.conf >nul
+::    echo [boot] | wsl -d %WSLName% -e sudo tee /etc/wsl.conf >nul
+::    echo systemd=true | wsl -d %WSLName% -e sudo tee -a /etc/wsl.conf >nul
+::    wsl -t %WSLName%
+::    echo STT SERVER: Waiting 10s for configuration refresh...
+::    timeout /t 10 /nobreak
+::)
+
 echo STT SERVER: Updating package lists...
 wsl -d %WSLName% -e sudo apt update
 if NOT %ERRORLEVEL% == 0 (
@@ -87,9 +101,19 @@ cd /d %~dp0
 :: Convert the current Windows directory to WSL path format and store it in a variable
 for /f "tokens=*" %%i in ('wsl wslpath -a "%CD%"') do set WSL_CURRENT_DIR=%%i
 :: Use the variable to copy the Dockerfile into the desired location in WSL
-wsl -d %WSLName% -e mkdir -p /home/%LinuxUsername/STT_server
-wsl -d %WSLName% -e cp "%WSL_CURRENT_DIR%/Dockerfile" /home/%LinuxUsername/STT_server
-endlocal
+wsl -d %WSLName% -e sudo mkdir -p /home/%LinuxUsername%/STT_server
+if NOT %ERRORLEVEL% == 0 (
+    echo STT SERVER: ERROR: Failed to create server directory.
+    pause
+    exit /b %ERRORLEVEL%
+)
+wsl -d %WSLName% -e sudo cp "%WSL_CURRENT_DIR%/Dockerfile" /home/%LinuxUsername%/STT_server
+if NOT %ERRORLEVEL% == 0 (
+    echo STT SERVER: ERROR: Failed to copy server Dockerfile.
+    pause
+    exit /b %ERRORLEVEL%
+)
+
 
 echo STT SERVER: Recommending running 'wsl --shutdown' or full Windows reboot for changes to take effect...
 
