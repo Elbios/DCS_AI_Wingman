@@ -19,13 +19,10 @@ def play_wav(file_path):
     play_obj = wave_obj.play()
     play_obj.wait_done()
     
-async def send_audio_to_stt_server(wav_data):
+async def send_audio_to_stt_server(wav_data, file_path):
     boundary = '----WebKitFormBoundary' + os.urandom(16).hex()
     content_type = f'multipart/form-data; boundary={boundary}'
     filename = "audio.wav"
-
-    with open(file_path, 'rb') as f:
-        file_content = f.read()
 
     multipart_body = (
         f"--{boundary}\r\n"
@@ -71,9 +68,10 @@ async def main_loop():
     data_queue = Queue()
     # We use SpeechRecognizer to record our audio because it has a nice feauture where it can detect when speech ends.
     recorder = sr.Recognizer()
-    recorder.energy_threshold = args.energy_threshold
+    recorder.energy_threshold = args.energy_threshold #250
     # Definitely do this, dynamic energy compensation lowers the energy threshold dramtically to a point where the SpeechRecognizer never stops recording.
     recorder.dynamic_energy_threshold = False
+    recorder.pause_threshold=0.5
 
     # Important for linux users.
     # Prevents permanent application hang and crash by using the wrong Microphone
@@ -93,7 +91,7 @@ async def main_loop():
         source = sr.Microphone(sample_rate=16000)
 
     with source:
-        recorder.adjust_for_ambient_noise(source)
+        recorder.adjust_for_ambient_noise(source, duration=5)
 
     def record_callback(_, audio:sr.AudioData) -> None:
         """
@@ -132,7 +130,7 @@ async def main_loop():
             save_task = asyncio.create_task(save_wav_data_async(temp_file_path, wav_data))
 
             # Send audio to STT server asynchronously
-            send_task = asyncio.create_task(send_audio_to_stt_server(wav_data))
+            send_task = asyncio.create_task(send_audio_to_stt_server(wav_data, temp_file_path))
 
             samples = bytes()
             print('<Listening...>', end='\r\n', flush=True)
