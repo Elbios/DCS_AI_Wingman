@@ -1,22 +1,60 @@
 import argparse
 import io
 import os
+import asyncio
+import aiohttp
+import aiofiles
 import speech_recognition as sr
 from datetime import datetime
 from queue import Queue
-from tempfile import NamedTemporaryFile
 from time import sleep
 from sys import platform
 
 import simpleaudio as sa
+
+STT_URL = 'http://localhost:8070/inference'
 
 def play_wav(file_path):
     wave_obj = sa.WaveObject.from_wave_file(file_path)
     play_obj = wave_obj.play()
     play_obj.wait_done()
     
+async def send_audio_to_stt_server(wav_data):
+    boundary = '----WebKitFormBoundary' + os.urandom(16).hex()
+    content_type = f'multipart/form-data; boundary={boundary}'
+    filename = "audio.wav"
 
-def main():
+    with open(file_path, 'rb') as f:
+        file_content = f.read()
+
+    multipart_body = (
+        f"--{boundary}\r\n"
+        f"Content-Disposition: form-data; name=\"file\"; filename=\"{filename}\"\r\n"
+        f"Content-Type: audio/wav\r\n\r\n"
+    ).encode('iso-8859-1') + wav_data + (
+        f"\r\n--{boundary}--\r\n"
+    ).encode('iso-8859-1')
+
+    headers = {
+        "Content-Type": content_type,
+        "Content-Length": str(len(multipart_body)),
+    }
+
+    async with aiohttp.ClientSession() as session:
+        async with session.post(STT_URL, data=multipart_body, headers=headers) as response:
+            if response.status == 200:
+                json_response = await response.json()
+                text_response = json_response.get('text', '')
+                print(text_response)
+                # Save the text response to a file
+                text_file_path = file_path.replace('.wav', '.txt')
+                with open(text_file_path, 'w') as text_file:
+                    text_file.write(text_response)
+            else:
+                print(f"Failed to send audio to STT server, status code: {response.status}")
+
+
+async def main_loop():
     parser = argparse.ArgumentParser()
     parser.add_argument("--energy_threshold", default=1000, help="Energy level for mic to detect.", type=int)
     parser.add_argument("--record_timeout", default=30, help="How real time the recording is in seconds.", type=float)
@@ -87,20 +125,28 @@ def main():
             print('<Processing...>', end='\r\n', flush=True)
             # Use AudioData to convert the raw data to wav data.
             audio_data = sr.AudioData(samples, source.SAMPLE_RATE, source.SAMPLE_WIDTH)
-            wav_data = io.BytesIO(audio_data.get_wav_data())
-            # Write wav data to the temporary file in voice_cache dir
+            wav_data = audio_data.get_wav_data()
+            # Write wav data asynchronously to the temporary file in voice_cache dir
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             temp_file_path = os.path.join(voice_cache_dir, f"voice_{timestamp}.wav")
-            with open(temp_file_path, 'w+b') as f:
-                f.write(wav_data.read())
+            save_task = asyncio.create_task(save_wav_data_async(temp_file_path, wav_data))
 
-            print(f"Audio saved to {temp_file_path}", end='\r\n', flush=True)
+            # Send audio to STT server asynchronously
+            send_task = asyncio.create_task(send_audio_to_stt_server(wav_data))
 
             samples = bytes()
             print('<Listening...>', end='\r\n', flush=True)
         else:
             # Infinite loops are bad for processors, must sleep.
-            sleep(0.25)
+            await asyncio.sleep(0.25)
+
+async def save_wav_data_async(file_path, wav_data):
+    async with aiofiles.open(file_path, 'wb') as f:
+        await f.write(wav_data)
+    print(f"Audio saved to {file_path}", end='\r\n', flush=True)
+
+async def main():
+    await main_loop()
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
