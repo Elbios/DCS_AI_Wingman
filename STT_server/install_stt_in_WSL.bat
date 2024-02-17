@@ -37,15 +37,14 @@ if NOT %ERRORLEVEL% == 0 (
     exit /b %ERRORLEVEL%
 )
 
-echo STT SERVER: Checking if Docker daemon is running...
-
-:: Check if dockerd is running
-wsl -d %WSLName% -- pgrep dockerd >nul 2>&1
-if NOT %ERRORLEVEL% == 0 (
-    echo STT SERVER: Docker daemon not running. Assuming Docker is not installed. Proceeding to install Docker..
-) ELSE (
-    echo STT SERVER: Docker daemon already running, assuming dependencies are installed. Exiting..
+echo STT SERVER: Checking if Docker is installed...
+wsl -d %WSLName% -e bash -c "command -v docker"
+if %ERRORLEVEL% == 0 (
+    echo STT SERVER: Docker command exists, assuming all dependencies already installed. Exiting script.
+    pause
     exit /b 0
+) ELSE (
+    echo STT SERVER: Docker not found. Proceeding to install Docker..
 )
 
 echo STT SERVER: Downloading Docker install script...
@@ -107,6 +106,7 @@ if NOT %ERRORLEVEL% == 0 (
     pause
     exit /b %ERRORLEVEL%
 )
+:: TODO: can replace with cloning from git
 wsl -d %WSLName% -e sudo cp "%WSL_CURRENT_DIR%/Dockerfile" /home/%LinuxUsername%/STT_server
 if NOT %ERRORLEVEL% == 0 (
     echo STT SERVER: ERROR: Failed to copy server Dockerfile.
@@ -114,6 +114,7 @@ if NOT %ERRORLEVEL% == 0 (
     exit /b %ERRORLEVEL%
 )
 
+wsl -t %WSLName%
 
 echo STT SERVER: Recommending running 'wsl --shutdown' or full Windows reboot for changes to take effect...
 

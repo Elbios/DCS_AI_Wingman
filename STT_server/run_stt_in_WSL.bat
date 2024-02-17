@@ -43,7 +43,7 @@ wsl -d %WSLName% -- pgrep dockerd >nul 2>&1
 if NOT %ERRORLEVEL% == 0 (
     echo STT SERVER: Docker daemon not running. Starting dockerd background process
     wsl -d %WSLName% -e nohup sh -c "dockerd &"
-    timeout 5
+    timeout 5 /NOBREAK >NUL
 ) ELSE (
     echo STT SERVER: Docker daemon is running.
 )
