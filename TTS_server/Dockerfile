@@ -1,5 +1,6 @@
 # Use PyTorch base image with CUDA
-FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-devel
+#FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-devel
+FROM pytorch/pytorch:2.2.0-cuda11.8-cudnn8-devel
 
 # Set non-interactive installation mode
 ARG DEBIAN_FRONTEND=noninteractive
