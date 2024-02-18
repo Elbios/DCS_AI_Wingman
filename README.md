@@ -25,3 +25,9 @@ Expect WSL will eat 40GB+ disk space.
 
 FRONTEND:
 When selected backend services are running, run `python client_frontend.py` to run the client app which listens to the microphone and converts voice to text with STT.
+
+BUILDING RELEASE:
+1) Download `https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-essentials.7z`
+2) Extract ffmpeg.exe to ffmpeg folder in repo
+3) pyinstaller --add-data "ffmpeg;ffmpeg" client_frontend.py
+4) Result will be created in `dist` folder

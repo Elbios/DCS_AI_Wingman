@@ -9,17 +9,45 @@ from datetime import datetime
 from queue import Queue
 from time import sleep
 from sys import platform
+#from pydub import AudioSegment
+#from pydub.effects import normalize
 from TTS_server.tts import tts
 from TTS_server.radio_fx import add_radio_fx
+import ffmpeg
 
 import simpleaudio as sa
 
 STT_URL = 'http://localhost:8070/inference'
 
 def play_wav(file_path):
-    wave_obj = sa.WaveObject.from_wave_file(file_path)
-    play_obj = wave_obj.play()
-    play_obj.wait_done()
+    try:
+        # Extract the base name without the extension
+        base_name = os.path.splitext(os.path.basename(file_path))[0]
+
+        # Create the output filenames by adding suffixes
+        ffmpeg_output_file = os.path.join(os.path.dirname(file_path), f"{base_name}_resampled.wav")
+        output_wav_with_fx = os.path.join(os.path.dirname(file_path), f"{base_name}_with_fx.wav")
+
+        # Process the input file with ffmpeg
+        (
+            ffmpeg
+            .input(file_path)
+            .output(ffmpeg_output_file, ac=1, ar='16k')  # ac=1 sets the audio to mono, ar='16k' sets the sample rate to 16000 Hz
+            .global_args('-hide_banner')
+            .global_args('-loglevel', 'error')
+            .run(cmd=r'./ffmpeg/ffmpeg.exe')
+        )
+
+        add_radio_fx(ffmpeg_output_file, output_wav_with_fx)
+
+        print(f"Playing file {output_wav_with_fx}")
+
+        # Play the output file
+        wave_obj = sa.WaveObject.from_wave_file(output_wav_with_fx)
+        play_obj = wave_obj.play()
+        play_obj.wait_done()
+    except Exception as e:
+        print(f"Error: {e}")
     
 async def send_audio_to_stt_server(wav_data, file_path):
     boundary = '----WebKitFormBoundary' + os.urandom(16).hex()
@@ -49,8 +77,8 @@ async def send_audio_to_stt_server(wav_data, file_path):
                 result = await tts(text_response, "http://172.27.206.9:80/", "en", "ATC_sample1_denoised_cloned")
                 print(result)
                 play_wav(result)
-                wav_with_fx_path = tts_wav_path + 'with_FX.wav'
-                add_radio_fx(tts_wav_path, wav_with_fx_path)
+                #wav_with_fx_path = result + 'with_FX.wav'
+                #add_radio_fx(result, wav_with_fx_path)
                 #play_wav(wav_with_fx_path)
                 # Save the text response to a file
                 text_file_path = file_path.replace('.wav', '.txt')
