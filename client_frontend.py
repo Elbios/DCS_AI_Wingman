@@ -10,6 +10,7 @@ from queue import Queue
 from time import sleep
 from sys import platform
 from TTS_server.tts import tts
+from TTS_server.radio_fx import add_radio_fx
 
 import simpleaudio as sa
 
@@ -49,7 +50,9 @@ async def send_audio_to_stt_server(wav_data, file_path):
                 print(result)
                 tts_wav_path = f"TTS_server" + result
                 play_wav(tts_wav_path)
-
+                wav_with_fx_path = tts_wav_path + 'with_FX.wav'
+                add_radio_fx(tts_wav_path, wav_with_fx_path)
+                #play_wav(wav_with_fx_path)
                 # Save the text response to a file
                 text_file_path = file_path.replace('.wav', '.txt')
                 with open(text_file_path, 'w') as text_file:
