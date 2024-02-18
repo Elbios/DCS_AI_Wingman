@@ -9,6 +9,7 @@ from datetime import datetime
 from queue import Queue
 from time import sleep
 from sys import platform
+from TTS_server.tts import tts
 
 import simpleaudio as sa
 
@@ -43,6 +44,12 @@ async def send_audio_to_stt_server(wav_data, file_path):
                 json_response = await response.json()
                 text_response = json_response.get('text', '')
                 print(text_response)
+                # Call TTS and play generated audio
+                result = await tts(text_response, "http://172.27.206.9:80/", "en", "ATC_sample1_denoised_cloned")
+                print(result)
+                tts_wav_path = f"TTS_server" + result
+                play_wav(tts_wav_path)
+
                 # Save the text response to a file
                 text_file_path = file_path.replace('.wav', '.txt')
                 with open(text_file_path, 'w') as text_file:
