@@ -27,4 +27,6 @@ RUN  git clone https://github.com/ggerganov/whisper.cpp.git && \
     fi && \
     bash ./models/download-ggml-model.sh ${WHISPERCPP_MODEL}
 
+WORKDIR /home/debian/STT_server
+
 CMD ["bash", "start_stt_service.sh"]

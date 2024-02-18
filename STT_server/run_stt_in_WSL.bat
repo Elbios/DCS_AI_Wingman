@@ -35,6 +35,13 @@ if NOT %ERRORLEVEL% == 0 (
     pause
     exit /b %ERRORLEVEL%
 )
+wsl -d %WSLName% -e sudo cp "%WSL_CURRENT_DIR%/start_stt_service.sh" /home/%LinuxUsername%/STT_server
+if NOT %ERRORLEVEL% == 0 (
+    echo STT SERVER: ERROR: Failed to copy server startup script.
+    pause
+    exit /b %ERRORLEVEL%
+)
+
 
 echo STT SERVER: Checking if Docker daemon is running...
 
