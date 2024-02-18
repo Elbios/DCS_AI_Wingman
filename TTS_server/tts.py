@@ -45,7 +45,7 @@ async def tts(textString, endpoint, language, voiceid):
                 with open(metadata_path, "w") as metadata_file:
                     metadata_file.write(f"{textString}\nTimestamp: {timestamp}\nSize of WAV: {len(response_content)} bytes\n")
                 
-                return f"soundcache/{base_filename}.wav"
+                return f"tts_cache/{base_filename}.wav"
             else:
                 # Handle error case
                 error_log_path = path.join(soundcache_dir, f"{base_filename}.err")
@@ -54,11 +54,3 @@ async def tts(textString, endpoint, language, voiceid):
                     error_file.write(error_text)
                 return False
 
-# Example call to the async function
-# This assumes you have defined endpoint, language, and voiceid accordingly
-async def main():
-    result = await tts("Hello world how are you feeling?", "http://172.27.206.9:80/", "en", "ATC_sample1_denoised_cloned")
-    print(result)
-
-if __name__ == "__main__":
-    asyncio.run(main())
