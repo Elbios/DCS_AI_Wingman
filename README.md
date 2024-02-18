@@ -13,6 +13,7 @@ and use this link for the distro instead of ubuntu:
 `https://aka.ms/wsl-debian-gnulinux`
 
 TIP: best way to refresh WSL/fix random WSL issues is restarting Windows, second best is `wsl --shutdown` and waiting at least 10 seconds
+TIP2: use `wsl hostname -I` to find out your WSL IP - use that to access backend services in browser on host
 
 5) Double-click on STT_server/install_stt_in_WSL.bat if you want STT service installed (OpenAI Whisper, local)
 6) Double-click on STT_server/run_stt_in_WSL.bat when you want to have STT server running (first launch will be slower)
