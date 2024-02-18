@@ -48,8 +48,7 @@ async def send_audio_to_stt_server(wav_data, file_path):
                 # Call TTS and play generated audio
                 result = await tts(text_response, "http://172.27.206.9:80/", "en", "ATC_sample1_denoised_cloned")
                 print(result)
-                tts_wav_path = f"TTS_server" + result
-                play_wav(tts_wav_path)
+                play_wav(result)
                 wav_with_fx_path = tts_wav_path + 'with_FX.wav'
                 add_radio_fx(tts_wav_path, wav_with_fx_path)
                 #play_wav(wav_with_fx_path)

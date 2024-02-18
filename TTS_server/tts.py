@@ -14,8 +14,11 @@ async def tts(textString, endpoint, language, voiceid):
     
     lang =  language
     voice = voiceid
-    
-    data_voice_path = path.join("speakers", f"{voice}.json")
+    # Get the directory of tts.py
+    script_path = path.dirname(path.realpath(__file__))
+    # Construct the path to the speakers directory from there
+    data_voice_path = path.join(script_path, "speakers", f"{voiceid}.json")
+
     with open(data_voice_path, "r") as file:
         data_voice = json.load(file)
     
@@ -31,7 +34,7 @@ async def tts(textString, endpoint, language, voiceid):
                 response_content = await resp.read()
                 
                 timestamp = int(time.time())
-                soundcache_dir = "tts_cache"
+                soundcache_dir = path.join(script_path, "tts_cache")
                 if not os.path.exists(soundcache_dir):
                     os.makedirs(soundcache_dir)
                 base_filename = f"{timestamp}"
@@ -45,7 +48,7 @@ async def tts(textString, endpoint, language, voiceid):
                 with open(metadata_path, "w") as metadata_file:
                     metadata_file.write(f"{textString}\nTimestamp: {timestamp}\nSize of WAV: {len(response_content)} bytes\n")
                 
-                return f"tts_cache/{base_filename}.wav"
+                return output_wav_path
             else:
                 # Handle error case
                 error_log_path = path.join(soundcache_dir, f"{base_filename}.err")
