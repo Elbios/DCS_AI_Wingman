@@ -18,6 +18,8 @@ import ffmpeg
 import simpleaudio as sa
 
 STT_URL = 'http://localhost:8070/inference'
+# Run 'wsl hostname -I' to find out your WSL IP and substitute below
+XTTS_URL = "http://172.27.206.9:80/"
 
 def play_wav(file_path):
     try:
@@ -74,7 +76,7 @@ async def send_audio_to_stt_server(wav_data, file_path):
                 text_response = json_response.get('text', '')
                 print(text_response)
                 # Call TTS and play generated audio
-                result = await tts(text_response, "http://172.27.206.9:80/", "en", "ATC_sample1_denoised_cloned")
+                result = await tts(text_response, XTTS_URL, "en", "ATC_sample1_denoised_cloned")
                 print(result)
                 play_wav(result)
                 #wav_with_fx_path = result + 'with_FX.wav'
