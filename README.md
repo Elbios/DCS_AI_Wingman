@@ -31,3 +31,11 @@ BUILDING RELEASE:
 2) Extract ffmpeg.exe to ffmpeg folder in repo
 3) pyinstaller --add-data "ffmpeg;ffmpeg" client_frontend.py
 4) Result will be created in `dist` folder
+
+DEBUGGING:
+`wsl -d Debian`
+`docker ps`
+`docker logs stt_server_docker`
+`docker logs tts_server_docker`
+`cat /home/debian/TTS_server/coqui_xtts_server_log.txt`
+`cat /home/debian/STT_server/whispercpp_log.txt`
