@@ -16,7 +16,7 @@ ENV LLM_FILENAME=toppy-m-7b.Q4_K_S.gguf
 #ENV LLM_FILENAME=mixtral-8x7b-instruct-v0.1.Q4_K_M.gguf
 # Huggingface link to LLM, like: https://huggingface.co/TheBloke/dolphin-2_6-phi-2-GGUF/resolve/main/dolphin-2_6-phi-2.Q2_K.gguf?download=true
 #ARG LLM_DOWNLOAD_LINK=https://huggingface.co/TheBloke/dolphin-2_6-phi-2-GGUF/resolve/main/dolphin-2_6-phi-2.Q2_K.gguf?download=true
-#ARG LLM_DOWNLOAD_LINK=https://huggingface.co/TheBloke/Toppy-M-7B-GGUF/resolve/main/toppy-m-7b.Q4_K_S.gguf?download=true
+ARG LLM_DOWNLOAD_LINK=https://huggingface.co/TheBloke/Toppy-M-7B-GGUF/resolve/main/toppy-m-7b.Q4_K_S.gguf?download=true
 #ARG LLM_DOWNLOAD_LINK=https://huggingface.co/TheBloke/Mixtral-8x7B-Instruct-v0.1-GGUF/resolve/main/mixtral-8x7b-instruct-v0.1.Q4_K_M.gguf?download=true
 
 # Common dependencies
@@ -30,6 +30,8 @@ RUN if [ "${LLM_BACKEND}" = "koboldcpp" ]; then \
         wget -q -O /models/${LLM_FILENAME} ${LLM_DOWNLOAD_LINK} \
     ; fi
 
-WORKDIR /home/debian
+EXPOSE 5001
+
+WORKDIR /home/debian/LLM_server
 
 CMD ["bash", "start_llm_service.sh"]

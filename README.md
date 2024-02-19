@@ -39,3 +39,11 @@ DEBUGGING:
 `docker logs tts_server_docker`
 `cat /home/debian/TTS_server/coqui_xtts_server_log.txt`
 `cat /home/debian/STT_server/whispercpp_log.txt`
+`cat /home/debian/LLM_server/koboldcpp_log.txt`
+
+WEB SERVICES:
+
+Koboldcpp UI Lite:
+`http://localhost:5001`
+XTTS FastAPI:
+`http://localhost:80`

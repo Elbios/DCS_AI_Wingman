@@ -10,7 +10,7 @@ else
     GPULAYERS=99
 fi
 
-koboldcpp --usecublas --gpulayers ${GPULAYERS} --threads 7 --contextsize 20000 --skiplauncher --multiuser 5 --model \
+koboldcpp --usecublas --gpulayers ${GPULAYERS} --threads 7 --contextsize 24576 --skiplauncher --multiuser 5 --model \
     /models/${LLM_FILENAME} > /home/debian/LLM_server/koboldcpp_log.txt 2>&1 &
 
 # Keep the container running since background processes won't do it
