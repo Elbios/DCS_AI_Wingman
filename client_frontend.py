@@ -21,6 +21,8 @@ STT_URL = 'http://localhost:8070/inference'
 # Run 'wsl hostname -I' to find out your WSL IP and substitute below
 XTTS_URL = "http://172.27.206.9:80/"
 
+DEFAULT_MIC_ENERGY_THRESHOLD = 1001 # decrease if mic is not picking up your voice
+
 def play_wav(file_path):
     try:
         # Extract the base name without the extension
@@ -82,6 +84,7 @@ async def send_audio_to_stt_server(wav_data, file_path, loopback=False):
                     if llm_response == "":
                         print(f"Error: LLM response empty")
                         return
+                    print(llm_response)
                     tts_input = llm_response
                 else:
                     # Make TTS just echo what was said without involving LLM
@@ -102,7 +105,7 @@ async def send_audio_to_stt_server(wav_data, file_path, loopback=False):
 
 async def main_loop():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--energy_threshold", default=1000, help="Energy level for mic to detect.", type=int)
+    parser.add_argument("--energy_threshold", default=DEFAULT_MIC_ENERGY_THRESHOLD, help="Energy level for mic to detect.", type=int)
     parser.add_argument("--record_timeout", default=30, help="How real time the recording is in seconds.", type=float)
     parser.add_argument("--phrase_timeout", default=0.5, help="How much empty space between recordings before we consider it a new line in the transcription.", type=float)
     if 'linux' in platform:
@@ -117,10 +120,12 @@ async def main_loop():
     data_queue = Queue()
     # We use SpeechRecognizer to record our audio because it has a nice feauture where it can detect when speech ends.
     recorder = sr.Recognizer()
-    recorder.energy_threshold = args.energy_threshold #250
-    # Definitely do this, dynamic energy compensation lowers the energy threshold dramtically to a point where the SpeechRecognizer never stops recording.
-    recorder.dynamic_energy_threshold = False
-    recorder.pause_threshold=0.5
+    # Force a certain energy threshold if user passed it, otherwise we will adjust to ambient noise
+    if args.energy_threshold != DEFAULT_MIC_ENERGY_THRESHOLD:
+        recorder.energy_threshold = args.energy_threshold #250
+        # Definitely do this, dynamic energy compensation lowers the energy threshold dramtically to a point where the SpeechRecognizer never stops recording.
+        recorder.dynamic_energy_threshold = False
+    recorder.pause_threshold=1.0
 
     # Important for linux users.
     # Prevents permanent application hang and crash by using the wrong Microphone
@@ -139,8 +144,10 @@ async def main_loop():
     else:
         source = sr.Microphone(sample_rate=16000)
 
-    with source:
-        recorder.adjust_for_ambient_noise(source, duration=5)
+    # User did not specify threshold, adjust for ambient
+    if args.energy_threshold == DEFAULT_MIC_ENERGY_THRESHOLD:
+        with source:
+            recorder.adjust_for_ambient_noise(source, duration=5)
 
     def record_callback(_, audio:sr.AudioData) -> None:
         """

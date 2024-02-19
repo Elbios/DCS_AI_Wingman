@@ -47,20 +47,22 @@ def koboldcpp_generate_response(input_text):
     payload = {
         "prompt": "",
         "max_context_length": 20000,
-        "max_length": 512,
+        "max_length": 128,
         "rep_pen": 1.1,
-        "temperature": 0.7,
-        "top_p": 0.92,
+        "temperature": 0.6,
+        "top_p": 0.72,
         "min_p": 0,
-        "top_k": 100
+        "top_k": 100,
+        "stop_sequence": ["\n"]
     }
 
-    preprompt = "You are an F-16 pilot responding to this call on the radio:\n"
+    preprompt = "You are an F-16 pilot responding to the following call on the radio. Use appropriate military brevity speak. \n\n"
 
     output_text = ""
 
     payload['prompt'] = preprompt + input_text
-    payload['prompt'] = "[INST]" + payload['prompt'] + "[/INST]\n" # PROMPT TEMPLATE FOR MISTRAL AND MIXTRAL
+    #payload['prompt'] = "[INST]" + payload['prompt'] + "[/INST]\n" # PROMPT TEMPLATE FOR MISTRAL AND MIXTRAL
+    payload['prompt'] = "### Instruction: " + payload['prompt'] + "\n### Response:" # PROMPT TEMPLATE FOR ALPACA (Toppy, other non-mistral)
     # Make the API request
     response = requests.post(generate_api_endpoint, json=payload)
 
