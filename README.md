@@ -19,8 +19,10 @@ TIP2: use `wsl hostname -I` to find out your WSL IP - use that to access backend
 6) Double-click on STT_server/run_stt_in_WSL.bat when you want to have STT server running (first launch will be slower)
 7) Double-click on TTS_server/install_tts_in_WSL.bat if you want TTS service installed (Coqui XTTSv2 API server and/or XTTS+RVC gradio demo for testing)
 8) Double-click on TTS_server/run_tts_in_WSL.bat when you want to have TTS server running (first launch will be slower)
+9) Double-click on LLM_server/install_llm_in_WSL.bat if you want LLM service installed (required, unless using loopback test mode)
+10) Double-click on LLM_server/run_llm_in_WSL.bat when you want to have LLM server running (first launch will be slower)
 
-Expect WSL will eat 40GB+ disk space.
+Expect WSL will eat 40GB+ disk space. Expect likely more than 12-16GB VRAM use. Expect high RAM use (Coqui eats 5GB on its own)
 
 
 FRONTEND:
