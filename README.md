@@ -27,6 +27,7 @@ Expect WSL will eat 40GB+ disk space. Expect likely more than 12-16GB VRAM use. 
 
 FRONTEND:
 When selected backend services are running, run `python client_frontend.py` to run the client app which listens to the microphone and converts voice to text with STT.
+Recommend running with --energy_threshold=125 parameter (can also try 175 or 250 if mic is too sensitive) for better voice detection.
 
 BUILDING RELEASE:
 1) Download `https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-essentials.7z`
