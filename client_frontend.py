@@ -179,7 +179,7 @@ async def main_loop():
             save_task = asyncio.create_task(save_wav_data_async(temp_file_path, wav_data))
 
             # Send audio to STT server asynchronously
-            send_task = asyncio.create_task(send_audio_to_stt_server(wav_data, temp_file_path, loopback=True))
+            send_task = asyncio.create_task(send_audio_to_stt_server(wav_data, temp_file_path, loopback=False))
 
             samples = bytes()
             print('<Listening...>', end='\r\n', flush=True)
