@@ -31,8 +31,9 @@ async def tts(textString, endpoint, language, voiceid):
     async with aiohttp.ClientSession() as session:
         async with session.post(url, headers=headers, json=data_final) as resp:
             if resp.status == 200:
+                #print('got response from XTTS')
                 response_content = await resp.read()
-                
+                #print('read response from XTTS')
                 timestamp = int(time.time())
                 soundcache_dir = path.join(script_path, "tts_cache")
                 if not os.path.exists(soundcache_dir):
@@ -42,7 +43,7 @@ async def tts(textString, endpoint, language, voiceid):
                 
                 with open(output_wav_path, "wb") as audio_file:
                     audio_file.write(response_content)
-                
+                #print(f'saved xtts output file to {output_wav_path}')
                 # Saving metadata or debug information as an example
                 metadata_path = path.join(soundcache_dir, f"{base_filename}.txt")
                 with open(metadata_path, "w") as metadata_file:

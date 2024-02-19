@@ -56,7 +56,7 @@ def koboldcpp_generate_response(input_text):
         "stop_sequence": ["\n"]
     }
 
-    preprompt = "You are an F-16 pilot responding to the following call on the radio. Use appropriate military brevity speak. \n\n"
+    preprompt = "You are an F-16 pilot (called Falcon 2) responding to the following call on the radio. Use appropriate military brevity speak. \n\n"
 
     output_text = ""
 

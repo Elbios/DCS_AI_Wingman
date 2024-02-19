@@ -161,38 +161,40 @@ async def main_loop():
 
     # Create a background thread that will pass us raw audio bytes.
     # We could do this manually but SpeechRecognizer provides a nice helper.
-    recorder.listen_in_background(source, record_callback, phrase_time_limit=args.record_timeout)
+    #recorder.listen_in_background(source, record_callback, phrase_time_limit=args.record_timeout)
     
     print("Ready to record.\n")
 
-    samples = bytes()
-    
-    print('<Listening...>', end='\r\n', flush=True)
+    #samples = bytes()
+
     while True:
         now = datetime.utcnow()
+        print('<Listening...>', end='\r\n', flush=True)
+        #if not data_queue.empty():
+        #    while not data_queue.empty():
+        #        samples += data_queue.get()
+        with source:
+            try:
+                audio = recorder.listen(source, timeout=args.record_timeout)
+            except sr.WaitTimeoutError:
+                continue
 
-        if not data_queue.empty():
-            while not data_queue.empty():
-                samples += data_queue.get()
+        print('<Processing...>', end='\r\n', flush=True)
+        # Use AudioData to convert the raw data to wav data.
+        #audio_data = sr.AudioData(samples, source.SAMPLE_RATE, source.SAMPLE_WIDTH)
+        wav_data = audio.get_wav_data()
+        # Write wav data asynchronously to the temporary file in voice_cache dir
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        temp_file_path = os.path.join(voice_cache_dir, f"voice_{timestamp}.wav")
+        #save_task = asyncio.create_task(save_wav_data_async(temp_file_path, wav_data))
+        await save_wav_data_async(temp_file_path, wav_data)
+        # Send audio to STT server asynchronously
+        #send_task = asyncio.create_task(send_audio_to_stt_server(wav_data, temp_file_path, loopback=True))
+        await send_audio_to_stt_server(wav_data, temp_file_path, loopback=False)
+        #samples = bytes()
+        #print('<Listening...>', end='\r\n', flush=True)
 
-        if len(samples) > 0:
-            print('<Processing...>', end='\r\n', flush=True)
-            # Use AudioData to convert the raw data to wav data.
-            audio_data = sr.AudioData(samples, source.SAMPLE_RATE, source.SAMPLE_WIDTH)
-            wav_data = audio_data.get_wav_data()
-            # Write wav data asynchronously to the temporary file in voice_cache dir
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            temp_file_path = os.path.join(voice_cache_dir, f"voice_{timestamp}.wav")
-            save_task = asyncio.create_task(save_wav_data_async(temp_file_path, wav_data))
-
-            # Send audio to STT server asynchronously
-            send_task = asyncio.create_task(send_audio_to_stt_server(wav_data, temp_file_path, loopback=False))
-
-            samples = bytes()
-            print('<Listening...>', end='\r\n', flush=True)
-        else:
-            # Infinite loops are bad for processors, must sleep.
-            await asyncio.sleep(0.25)
+        await asyncio.sleep(0.25)
 
 async def save_wav_data_async(file_path, wav_data):
     async with aiofiles.open(file_path, 'wb') as f:
